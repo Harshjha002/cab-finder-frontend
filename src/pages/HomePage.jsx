@@ -1,22 +1,39 @@
-import DialogCreater from "../components/base/Dialog"
+
 import { useAuth } from "../Context/AuthContext"
 import axios from "axios"
-import React from "react"
+import React, { useState } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
-
+import { toast } from "sonner";
+import {
+    Dialog,
+    DialogTrigger,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "../components/ui/dialog";
 const HomePage = () => {
-    const { user } = useAuth()
+    const [open, setOpen] = useState(false);
+    const { user, setUser } = useAuth()
 
     const handleSubmit = async () => {
         try {
-            const res = await axios.put(`/${user.id}/upgrade-to-owner`)
-            console.log("Upgraded to owner:", res.data)
-            // Optional: Refresh or update context
+            const res = await axios.put(`http://localhost:8080/api/user/${user.id}/upgrade-to-owner`)
+            toast.success("Upgraded to owner:", {
+                duration: 3000,
+            })
+            setOpen(false);
+
+            setUser({ ...user, owner: true });
+
+
+
         } catch (error) {
             console.error("Failed to upgrade:", error)
         }
     }
+
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center px-4 py-10">
@@ -41,14 +58,30 @@ const HomePage = () => {
                                 </Button>
                             </Link>
                         ) : (
-                            <DialogCreater
-                                trigger="Become Owner"
-                                title="Upgrade to Owner"
-                                description="Click the button below to upgrade your account to a cab owner."
-                                submittext="Upgrade"
-                                handleSubmit={handleSubmit}
-                                Componet={() => null}
-                            />
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="primary" size="lg">
+                                        want to  Be owner?
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="rounded-xl">
+                                    <DialogHeader>
+                                        <DialogTitle>Want to be a owner?</DialogTitle>
+                                    </DialogHeader>
+                                    <p className="text-sm text-muted-foreground">
+                                        want to be a owner
+                                    </p>
+                                    <DialogFooter className="mt-4">
+                                        <Button variant="outline">Cancel</Button>
+                                        <Button
+                                            variant="destructive"
+                                            onClick={handleSubmit}
+                                        >
+                                            Confirm yess
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         )
                     ) : (
                         <Link to="/sign-in" className="w-full sm:w-auto">
