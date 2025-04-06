@@ -14,10 +14,12 @@ import { toast } from "sonner";
 import axios from "axios";
 import { useAuth } from "../../Context/AuthContext";
 import CabCard from "./CabCard";
+import { useNavigate } from "react-router-dom";
 
 const OwnersCabs = ({ cabs = [], refreshCabs }) => {
     const { user } = useAuth();
     const [open, setOpen] = useState(false);
+    const navigate = useNavigate()
     const [formData, setFormData] = useState({
         model: "",
         seatCapacity: "",
@@ -25,6 +27,8 @@ const OwnersCabs = ({ cabs = [], refreshCabs }) => {
         farePerKm: "",
         farePerDay: "",
     });
+
+    const carTypes = ["SEDAN", "HATCHBACK", "MINI", "LUXURY", "SUV"];
 
     const handleChange = (e) => {
         setFormData(prev => ({
@@ -41,6 +45,7 @@ const OwnersCabs = ({ cabs = [], refreshCabs }) => {
     };
 
     const handleSubmit = async () => {
+        setOpen(false);
         try {
             const payload = { ...formData, ownerId: user.id };
             await axios.post(`http://localhost:8080/api/cab/${user.id}/add-cab`, payload);
@@ -52,8 +57,8 @@ const OwnersCabs = ({ cabs = [], refreshCabs }) => {
                 farePerKm: "",
                 farePerDay: "",
             });
-            setOpen(false);
             refreshCabs?.();
+            setTimeout(() => navigate(0), 3000);
         } catch (error) {
             toast.error("Failed to add cab", {
                 description: error?.response?.data?.message || "Something went wrong.",
@@ -92,9 +97,11 @@ const OwnersCabs = ({ cabs = [], refreshCabs }) => {
                                         <SelectValue placeholder="Cab Type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="STANDARD">Standard</SelectItem>
-                                        <SelectItem value="PREMIUM">Premium</SelectItem>
-                                        <SelectItem value="SUV">SUV</SelectItem>
+                                        {carTypes.map((type) => (
+                                            <SelectItem key={type} value={type}>
+                                                {type}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                                 <Input name="farePerKm" type="number" placeholder="Fare Per Km" value={formData.farePerKm} onChange={handleChange} />

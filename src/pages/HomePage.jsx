@@ -18,12 +18,12 @@ const HomePage = () => {
     const { user, setUser } = useAuth()
 
     const handleSubmit = async () => {
+        setOpen(false);
         try {
             const res = await axios.put(`http://localhost:8080/api/user/${user.id}/upgrade-to-owner`)
             toast.success("Upgraded to owner:", {
                 duration: 3000,
             })
-            setOpen(false);
 
             setUser({ ...user, owner: true });
 

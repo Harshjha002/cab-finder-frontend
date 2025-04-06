@@ -10,14 +10,27 @@ import {
 } from "../components/ui/form";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
 
 const SignUpForm = () => {
     const form = useForm();
+    const navigate = useNavigate()
 
-    const onSubmit = (data) => {
-        console.log("Sign Up Payload:", data);
-        // TODO: Connect to backend
+    const onSubmit = async (data) => {
+        try {
+            const response = await axios.post("http://localhost:8080/api/user/register", data);
+            toast.success(response?.message)
+            navigate("/sign-in")
+            console.log("siged up : ", response.message, `user id is = ${response.userId}`);
+
+        } catch (error) {
+            toast.error("Failed to update profile", {
+                description: error?.response?.data?.message || "Something went wrong.",
+                duration: 4000,
+            });
+        }
     };
 
     const fields = [

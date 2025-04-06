@@ -12,11 +12,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
 import { useAuth } from "../../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const CabCard = ({ cab, onDelete, onUpdate }) => {
     const { user } = useAuth()
     const [openEdit, setOpenEdit] = useState(false);
     const [formData, setFormData] = useState({ ...cab });
+    const navigate = useNavigate()
 
     const handleChange = (e) => {
         setFormData((prev) => ({
@@ -25,22 +27,34 @@ const CabCard = ({ cab, onDelete, onUpdate }) => {
         }));
     };
 
+
     const handleUpdate = async () => {
+        setOpenEdit(false);
         try {
             const res = await axios.put(`http://localhost:8080/api/cab/${user.id}/${cab.id}/update-cab`, formData);
-            toast.success("Cab updated!");
+            toast.success("Cab updated!", {
+                duration: 3000,
+            });
             onUpdate(res.data);
-            setOpenEdit(false);
+            setTimeout(() => navigate(0), 3000);
+
+
+
         } catch (err) {
             toast.error("Update failed");
         }
     };
 
     const handleDelete = async () => {
+        setOpenEdit(false);
         try {
+            console.log("iam here")
             await axios.delete(`http://localhost:8080/api/cab/${user.id}/${cab.id}/delete-cab`);
-            toast.success("Cab deleted");
+            toast.success("Cab deleted", {
+                duration: 3000,
+            });
             onDelete(cab.id);
+            setTimeout(() => navigate(0), 3000);
         } catch (err) {
             toast.error("Delete failed");
         }
