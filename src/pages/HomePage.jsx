@@ -5,6 +5,7 @@ import React, { useState } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { toast } from "sonner";
+import { useRef } from "react"
 import {
     Dialog,
     DialogTrigger,
@@ -16,23 +17,41 @@ import {
 const HomePage = () => {
     const [open, setOpen] = useState(false);
     const { user, setUser } = useAuth()
+    const [image, setImage] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const fileInputRef = useRef(null);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file);
+            setPreview(URL.createObjectURL(file));
+        }
+    };
 
     const handleSubmit = async () => {
         setOpen(false);
         try {
-            const res = await axios.put(`http://localhost:8080/api/user/${user.id}/upgrade-to-owner`)
-            toast.success("Upgraded to owner:", {
-                duration: 3000,
-            })
+            const formData = new FormData();
+            formData.append("image", image);
 
+            await axios.put(
+                `http://localhost:8080/api/user/${user.id}/upgrade-to-owner`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            toast.success("Upgraded to owner!", { duration: 3000 });
             setUser({ ...user, owner: true });
-
-
-
         } catch (error) {
-            console.error("Failed to upgrade:", error)
+            console.error("Failed to upgrade:", error);
+            toast.error("Upgrade failed.");
         }
-    }
+    };
 
 
     return (
@@ -46,7 +65,7 @@ const HomePage = () => {
                 </p>
 
                 <div className="flex flex-col gap-4 sm:flex-row sm:justify-center sm:items-center">
-                    <Link to="/cab-finder" className="w-full sm:w-auto">
+                    <Link to="/cab-finder/find-cab-form" className="w-full sm:w-auto">
                         <Button size="lg" className="w-full sm:w-auto">Find a Cab</Button>
                     </Link>
 
@@ -58,30 +77,62 @@ const HomePage = () => {
                                 </Button>
                             </Link>
                         ) : (
-                            <Dialog>
+                            <Dialog open={open} onOpenChange={setOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="primary" size="lg">
-                                        want to  Be owner?
+                                        Want to Be Owner?
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="rounded-xl">
+
+                                <DialogContent className="rounded-xl max-w-md w-full">
                                     <DialogHeader>
-                                        <DialogTitle>Want to be a owner?</DialogTitle>
+                                        <DialogTitle className="text-xl text-center">Become an Owner</DialogTitle>
                                     </DialogHeader>
-                                    <p className="text-sm text-muted-foreground">
-                                        want to be a owner
-                                    </p>
-                                    <DialogFooter className="mt-4">
-                                        <Button variant="outline">Cancel</Button>
+
+                                    <div className="space-y-4 mt-2 text-center">
+                                        <p className="text-sm text-muted-foreground">
+                                            Upload a profile image to complete your owner request.
+                                        </p>
+
+                                        <label className="block mx-auto w-32 h-32 border-2 border-dashed border-primary rounded-full cursor-pointer hover:bg-muted transition flex items-center justify-center">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                                ref={fileInputRef}
+                                                className="hidden"
+                                            />
+                                            {preview ? (
+                                                <img
+                                                    src={preview}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover rounded-full"
+                                                />
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground px-2">
+                                                    Click to upload
+                                                </span>
+                                            )}
+                                        </label>
+                                    </div>
+
+                                    <DialogFooter className="mt-6 flex justify-between">
+                                        <Button variant="ghost" onClick={() => setOpen(false)}>
+                                            Cancel
+                                        </Button>
                                         <Button
-                                            variant="destructive"
+                                            variant="default"
+                                            disabled={!preview}
                                             onClick={handleSubmit}
+                                            className="bg-primary text-white hover:bg-primary/90 transition"
                                         >
-                                            Confirm yess
+                                            Submit Request
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
+
+
                         )
                     ) : (
                         <Link to="/sign-in" className="w-full sm:w-auto">
